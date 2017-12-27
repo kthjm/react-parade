@@ -17,6 +17,22 @@ travis encrypt 8-4-4-4-12 --add deploy.api_key
 ```
 ## Usage
 ```js
+import Parade from 'react-parade'
+
+export default () =>
+  <svg viewBox='0 0 600 600' >
+    <Parade {...{
+      d: string,
+      pace?: number,
+      pause?: boolean
+    }}>
+      <g fill='#483746'>
+        <circle r='5' />
+        <circle r='10' />
+        <circle r='15' />
+      </g>
+    </Parade>
+  </svg>
 ```
 ## API
 ## License
