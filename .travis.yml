@@ -1,13 +1,10 @@
 language: node_js
 node_js:
 - '8'
-# sude: required
-# services:
-#   - docker
 cache:
   yarn: true
   directories:
-    - node_modules
+  - node_modules
 after_success:
 - yarn coverage
 deploy:
@@ -15,3 +12,5 @@ deploy:
   email: toxictoxer@gmail.com
   on:
     tags: true
+  api_key:
+    secure: RiYC3FiLGUTYY4XsItu4Prur9Mt5rXueCe9yPkUmANCjs/t3G9Ka7QeqyBDoFdCjzhlsgXrb13GWKCCP3Q89Vbsq5Ft/UtzkyZWdPcL45+v3aKF+kO8PyL5/7pq2G7MedckdBUBxKAPFeRWJFdwMeMip4j9GkFIVHzw6/Jq+bMo+ttoG484yDkWaCvtGujQ51rpVQ8WKkRB9u2eT8nou+1cUr7hjYxC3g6KhJkxMCcSNIku/x/vjv/caHyFcNN55bgdh42ba07Zv0s6y3UQkksK9sMN8E/nUQF43nlQrQOhXsEEem8wSiyJZDMi3FV4m7pNpP1XTf1QyybGLPCts9rOcj0N8qMHd0fqnc/30a5SVJTLXqpwvr06YJg5K6zpMlOM6B1pw7g5p0dsZjQc1IxglhzcFoeAlz7R3Tl1MPzcRXTj4Oln8rEbh9dNlswW9RzGEUFA9HJZcrwkOFfAyYThy6NKlehGmF6+3QSN0K6QJP/y31kGNpx9YI+r27o1IcksqS04BKDtFeVffOBVBhWBYODWwJ7oaS3JbQKkrlDibBDWMPm+NVC/rJ0wujCqO4pt4Q5kgc7FGQz9t+TXZRuDFYMCP6Qm6HTCnOX88gh/fDB4Ru0CTwo7fN+nyivpKS9vgQsjvmo+Njmywim+ORlz2Id0J4LrL2udcIVJTSrc=
