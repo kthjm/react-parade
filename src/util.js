@@ -34,7 +34,7 @@ export class Marcher {
     this.reflectPosition()
   }
 
-  positioning(pace) {
+  march(pace) {
     this.advancePosition(pace)
     this.reflectPosition()
   }

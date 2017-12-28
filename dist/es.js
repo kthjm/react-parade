@@ -104,8 +104,8 @@ var Marcher = (function() {
 
   createClass(Marcher, [
     {
-      key: 'positioning',
-      value: function positioning(pace) {
+      key: 'march',
+      value: function march(pace) {
         this.advancePosition(pace)
         this.reflectPosition()
       }
@@ -182,31 +182,34 @@ function ref(g) {
 
 var Parade = (function(_React$Component) {
   inherits(Parade, _React$Component)
-
-  // d: string
-  // pause: boolean
-  // pace: number
+  createClass(Parade, [
+    {
+      key: 'ifThrow',
+      value: function ifThrow() {
+        if (!isStr(this.props.d)) {
+          throw new Error('react-parade component requires props.d')
+        }
+      }
+    }
+  ])
 
   function Parade(props) {
     classCallCheck(this, Parade)
-
-    if (!isStr(props.d)) {
-      throw new Error('react-parade component requires props.d')
-    }
 
     var _this = possibleConstructorReturn(
       this,
       (Parade.__proto__ || Object.getPrototypeOf(Parade)).call(this, props)
     )
 
-    _this.ref = ref.bind(_this)
+    _this.ifThrow()
 
+    _this.ref = ref.bind(_this)
     _this.parade = new Set()
     _this.requestId = undefined
     _this.animation = function() {
       var pace = _this.props.pace || PACE
       _this.parade.forEach(function(marcher) {
-        return marcher.positioning(pace)
+        return marcher.march(pace)
       })
       _this.request()
     }
@@ -258,8 +261,8 @@ var Parade = (function(_React$Component) {
       }
     },
     {
-      key: 'cansel',
-      value: function cansel() {
+      key: 'cancel',
+      value: function cancel() {
         caf(this.requestId)
         this.requestId = undefined
       }
@@ -286,26 +289,28 @@ var Parade = (function(_React$Component) {
     {
       key: 'componentWillReceiveProps',
       value: function componentWillReceiveProps(nextProps) {
+        this.ifThrow()
+
         if (nextProps.d !== this.props.d) {
-          this.cansel()
+          this.cancel()
           this.organize()
         }
       }
     },
     {
       key: 'componentDidUpdate',
-      value: function componentDidUpdate(prevProps) {
+      value: function componentDidUpdate() {
         if (this.canStart()) {
           this.start()
         } else if (this.canCancel()) {
-          this.cansel()
+          this.cancel()
         }
       }
     },
     {
       key: 'componentWillUnmount',
       value: function componentWillUnmount() {
-        this.cansel()
+        this.cancel()
         this.parade.clear()
       }
     }

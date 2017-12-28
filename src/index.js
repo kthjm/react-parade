@@ -42,23 +42,23 @@ type Props = {
 }
 
 export default class Parade extends React.Component {
-  // d: string
-  // pause: boolean
-  // pace: number
-
-  constructor(props) {
-    if (!isStr(props.d)) {
+  ifThrow() {
+    if (!isStr(this.props.d)) {
       throw new Error('react-parade component requires props.d')
     }
+  }
 
+  constructor(props) {
     super(props)
-    this.ref = ref.bind(this)
 
+    this.ifThrow()
+
+    this.ref = ref.bind(this)
     this.parade = new Set()
     this.requestId = undefined
     this.animation = () => {
       const pace = this.props.pace || PACE
-      this.parade.forEach(marcher => marcher.positioning(pace))
+      this.parade.forEach(marcher => marcher.march(pace))
       this.request()
     }
   }
@@ -92,7 +92,7 @@ export default class Parade extends React.Component {
     this.request()
   }
 
-  cansel() {
+  cancel() {
     caf(this.requestId)
     this.requestId = undefined
   }
@@ -111,22 +111,24 @@ export default class Parade extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
+    this.ifThrow()
+
     if (nextProps.d !== this.props.d) {
-      this.cansel()
+      this.cancel()
       this.organize()
     }
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate() {
     if (this.canStart()) {
       this.start()
     } else if (this.canCancel()) {
-      this.cansel()
+      this.cancel()
     }
   }
 
   componentWillUnmount() {
-    this.cansel()
+    this.cancel()
     this.parade.clear()
   }
 }
