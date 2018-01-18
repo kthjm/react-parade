@@ -6,7 +6,7 @@ const uglify = require('rollup-plugin-uglify')
 const { minify } = require('uglify-es')
 
 const input = `src/index.js`
-const file = mid => `dist/${mid}.js`
+const file = unique => `dist/${unique}.js`
 
 const cjs_and_es = () =>
   rollup({
@@ -30,10 +30,9 @@ const umd = () =>
     bundle.write({
       format: 'umd',
       file: file('min'),
-      name: 'ReactShut',
+      name: 'ReactParade',
       globals: {
-        react: 'React',
-        atra: 'Atra'
+        react: 'React'
       }
     })
   )

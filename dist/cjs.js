@@ -1,10 +1,6 @@
 'use strict'
 
-function _interopDefault(ex) {
-  return ex && typeof ex === 'object' && 'default' in ex ? ex['default'] : ex
-}
-
-var React = _interopDefault(require('react'))
+var React = require('react')
 
 var classCallCheck = function(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
@@ -91,8 +87,8 @@ var Marcher = (function() {
   function Marcher(_ref) {
     var element = _ref.element,
       totalLength = _ref.totalLength,
-      position = _ref.position,
-      getPointAtLength = _ref.getPointAtLength
+      getPointAtLength = _ref.getPointAtLength,
+      position = _ref.position
     classCallCheck(this, Marcher)
     var _baseValProperties$el = baseValProperties[element.nodeName],
       propertyX = _baseValProperties$el.propertyX,
@@ -102,16 +98,16 @@ var Marcher = (function() {
     this.baseValY = element[propertyY].baseVal
 
     this.totalLength = totalLength
-    this.position = position
     this.getPointAtLength = getPointAtLength
+    this.position = position
 
     this.reflectPosition()
   }
 
   createClass(Marcher, [
     {
-      key: 'march',
-      value: function march(pace) {
+      key: 'marching',
+      value: function marching(pace) {
         this.advancePosition(pace)
         this.reflectPosition()
       }
@@ -142,15 +138,17 @@ var Marcher = (function() {
 })()
 
 //
-var PACE = 1
 var isStr = function isStr(data) {
   return typeof data === 'string'
 }
-var raf = function raf(callback) {
-  return window.requestAnimationFrame(callback)
+var isNum = function isNum(data) {
+  return typeof data === 'number'
 }
-var caf = function caf(id) {
-  return window.cancelAnimationFrame(id)
+var raf = function raf(cb) {
+  return window.requestAnimationFrame(cb)
+}
+var caf = function caf(requestId) {
+  return window.cancelAnimationFrame(requestId)
 }
 
 var createPath = function createPath(d) {
@@ -168,11 +166,7 @@ var createPathUtil = function createPathUtil(d) {
   return { totalLength: totalLength, getPointAtLength: getPointAtLength }
 }
 
-var extractElements = function extractElements(g, nodeName) {
-  return Array.from(g.querySelectorAll(nodeName))
-}
-
-function ref(g) {
+var ref = function ref(g) {
   if (g) {
     this.getElements = function() {
       var elements = []
@@ -183,46 +177,46 @@ function ref(g) {
       })
       return elements
     }
+  } else {
+    delete this.getElements
   }
+}
+var extractElements = function extractElements(g, nodeName) {
+  return Array.from(g.querySelectorAll(nodeName))
 }
 
 var Parade = (function(_React$Component) {
   inherits(Parade, _React$Component)
-  createClass(Parade, [
-    {
-      key: 'ifThrow',
-      value: function ifThrow() {
-        if (!isStr(this.props.d)) {
-          throw new Error('react-parade component requires props.d')
-        }
-      }
-    }
-  ])
 
-  function Parade(props) {
+  function Parade() {
     classCallCheck(this, Parade)
-
-    var _this = possibleConstructorReturn(
+    return possibleConstructorReturn(
       this,
-      (Parade.__proto__ || Object.getPrototypeOf(Parade)).call(this, props)
+      (Parade.__proto__ || Object.getPrototypeOf(Parade)).apply(this, arguments)
     )
-
-    _this.ifThrow()
-
-    _this.ref = ref.bind(_this)
-    _this.parade = new Set()
-    _this.requestId = undefined
-    _this.animation = function() {
-      var pace = _this.props.pace || PACE
-      _this.parade.forEach(function(marcher) {
-        return marcher.march(pace)
-      })
-      _this.request()
-    }
-    return _this
   }
 
   createClass(Parade, [
+    {
+      key: 'componentWillMount',
+      value: function componentWillMount() {
+        var _this2 = this
+
+        this.throwInvalidProps(this.props)
+
+        this.parade = new Set()
+        this.requestId = undefined
+        this.animation = function() {
+          var pace = _this2.props.pace
+          _this2.parade.forEach(function(marcher) {
+            return marcher.marching(pace)
+          })
+          _this2.request()
+        }
+
+        this.ref = ref.bind(this)
+      }
+    },
     {
       key: 'render',
       value: function render() {
@@ -230,9 +224,19 @@ var Parade = (function(_React$Component) {
       }
     },
     {
+      key: 'componentDidMount',
+      value: function componentDidMount() {
+        this.organize()
+
+        if (this.canStart()) {
+          this.start()
+        }
+      }
+    },
+    {
       key: 'organize',
       value: function organize() {
-        var _this2 = this
+        var _this3 = this
 
         this.parade.clear()
 
@@ -242,15 +246,14 @@ var Parade = (function(_React$Component) {
 
         this.getElements().forEach(function(element, index, _ref) {
           var length = _ref.length
-
-          var position = totalLength * (index / length)
-          var marcher = new Marcher({
-            element: element,
-            totalLength: totalLength,
-            position: position,
-            getPointAtLength: getPointAtLength
-          })
-          _this2.parade.add(marcher)
+          return _this3.parade.add(
+            new Marcher({
+              element: element,
+              totalLength: totalLength,
+              getPointAtLength: getPointAtLength,
+              position: totalLength * (index / length)
+            })
+          )
         })
       }
     },
@@ -286,26 +289,19 @@ var Parade = (function(_React$Component) {
       }
     },
     {
-      key: 'componentDidMount',
-      value: function componentDidMount() {
-        this.organize()
-        return this.canStart() && this.start()
-      }
-    },
-    {
       key: 'componentWillReceiveProps',
       value: function componentWillReceiveProps(nextProps) {
-        this.ifThrow()
-
-        if (nextProps.d !== this.props.d) {
-          this.cancel()
-          this.organize()
-        }
+        this.throwInvalidProps(nextProps)
       }
     },
     {
       key: 'componentDidUpdate',
-      value: function componentDidUpdate() {
+      value: function componentDidUpdate(prevProps) {
+        if (prevProps.d !== this.props.d) {
+          this.cancel()
+          this.organize()
+        }
+
         if (this.canStart()) {
           this.start()
         } else if (this.canCancel()) {
@@ -318,10 +314,31 @@ var Parade = (function(_React$Component) {
       value: function componentWillUnmount() {
         this.cancel()
         this.parade.clear()
+        delete this.parade
+        delete this.animation
+        delete this.ref
+      }
+    },
+    {
+      key: 'throwInvalidProps',
+      value: function throwInvalidProps(props) {
+        if (!props.d || !isStr(props.d)) {
+          throw new Error('react-parade component requires props.d')
+        }
+
+        if (!isNum(props.pace)) {
+          throw new TypeError(
+            'react-parade component props.pace must be "number"'
+          )
+        }
       }
     }
   ])
   return Parade
 })(React.Component)
+
+Parade.defaultProps = {
+  pace: 1
+}
 
 module.exports = Parade

@@ -1,30 +1,43 @@
 // @flow
-import React from 'react'
-import { nodeNames, Marcher } from './util.js'
+import * as React from 'react'
+import { nodeNames, Marcher } from './Marcher.js'
+import type { TotalLength, Position, Fn$GetPointAtLength } from './types.js'
 
-const PACE = 1
-const isStr = data => typeof data === 'string'
-const raf = callback => window.requestAnimationFrame(callback)
-const caf = id => window.cancelAnimationFrame(id)
+const isStr = (data: any): boolean => typeof data === 'string'
+const isNum = (data: any): boolean => typeof data === 'number'
+const raf = (cb: () => void): number => window.requestAnimationFrame(cb)
+const caf = (requestId?: number): void => window.cancelAnimationFrame(requestId)
 
-const createPath = d => {
-  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+type PathElement = {
+  getTotalLength: () => TotalLength,
+  getPointAtLength: Fn$GetPointAtLength
+}
+
+type CreatePathUtil$Result = {
+  totalLength: TotalLength,
+  getPointAtLength: Fn$GetPointAtLength
+}
+
+const createPath = (d: string): PathElement => {
+  const path: any = document.createElementNS('http://www.w3.org/2000/svg','path')
+  ;(path: PathElement)
   path.setAttribute('d', d)
   return path
 }
 
-const createPathUtil = d => {
-  const path = createPath(d)
-  const totalLength = path.getTotalLength()
-  const getPointAtLength = position => path.getPointAtLength(position)
+const createPathUtil = (d: string): CreatePathUtil$Result => {
+  const path: PathElement = createPath(d)
+  const totalLength: TotalLength = path.getTotalLength()
+  const getPointAtLength: Fn$GetPointAtLength = position => path.getPointAtLength(position)
   return { totalLength, getPointAtLength }
 }
 
-const extractElements = (g, nodeName) =>
-  Array.from(g.querySelectorAll(nodeName))
+type RefFn = (g: React$ElementRef<*> | null) => void
+type GetElementsFn = () => Array<Element>
 
-function ref(g) {
+const ref: RefFn = function(g: any) {
   if (g) {
+    ;(g: React$ElementType)
     this.getElements = () => {
       const elements = []
       nodeNames.forEach(nodeName =>
@@ -32,39 +45,55 @@ function ref(g) {
       )
       return elements
     }
+  } else {
+    ;(g: null)
+    delete this.getElements
   }
 }
+const extractElements = (g: Element, nodeName: string): Array<Element> =>
+  Array.from(g.querySelectorAll(nodeName))
 
 type Props = {
   d: string,
-  pace?: number,
-  pause?: boolean
+  pace: number,
+  pause?: boolean,
+  children: React$Node
 }
 
-export default class Parade extends React.Component {
-  ifThrow() {
-    if (!isStr(this.props.d)) {
-      throw new Error('react-parade component requires props.d')
-    }
+export default class Parade extends React.Component<Props> {
+  static defaultProps: {
+    pace: 1
   }
+  parade: Set<Marcher>
+  requestId: number | void
+  animation: () => void
+  ref: RefFn
+  getElements: GetElementsFn
 
-  constructor(props) {
-    super(props)
+  componentWillMount() {
+    this.throwInvalidProps(this.props)
 
-    this.ifThrow()
-
-    this.ref = ref.bind(this)
     this.parade = new Set()
     this.requestId = undefined
     this.animation = () => {
-      const pace = this.props.pace || PACE
-      this.parade.forEach(marcher => marcher.march(pace))
+      const pace = this.props.pace
+      this.parade.forEach(marcher => marcher.marching(pace))
       this.request()
     }
+
+    this.ref = ref.bind(this)
   }
 
   render() {
     return <g ref={this.ref}>{this.props.children}</g>
+  }
+
+  componentDidMount() {
+    this.organize()
+
+    if (this.canStart()) {
+      this.start()
+    }
   }
 
   organize() {
@@ -72,16 +101,16 @@ export default class Parade extends React.Component {
 
     const { totalLength, getPointAtLength } = createPathUtil(this.props.d)
 
-    this.getElements().forEach((element, index, { length }) => {
-      const position = totalLength * (index / length)
-      const marcher = new Marcher({
-        element,
-        totalLength,
-        position,
-        getPointAtLength
-      })
-      this.parade.add(marcher)
-    })
+    this.getElements().forEach((element, index, { length }) =>
+      this.parade.add(
+        new Marcher({
+          element,
+          totalLength,
+          getPointAtLength,
+          position: totalLength * (index / length)
+        })
+      )
+    )
   }
 
   request() {
@@ -105,21 +134,16 @@ export default class Parade extends React.Component {
     return this.props.pause
   }
 
-  componentDidMount() {
-    this.organize()
-    return this.canStart() && this.start()
+  componentWillReceiveProps(nextProps: Props) {
+    this.throwInvalidProps(nextProps)
   }
 
-  componentWillReceiveProps(nextProps) {
-    this.ifThrow()
-
-    if (nextProps.d !== this.props.d) {
+  componentDidUpdate(prevProps: Props) {
+    if (prevProps.d !== this.props.d) {
       this.cancel()
       this.organize()
     }
-  }
 
-  componentDidUpdate() {
     if (this.canStart()) {
       this.start()
     } else if (this.canCancel()) {
@@ -130,5 +154,22 @@ export default class Parade extends React.Component {
   componentWillUnmount() {
     this.cancel()
     this.parade.clear()
+    delete this.parade
+    delete this.animation
+    delete this.ref
   }
+
+  throwInvalidProps(props: Props) {
+    if (!props.d || !isStr(props.d)) {
+      throw new Error('react-parade component requires props.d')
+    }
+
+    if (!isNum(props.pace)) {
+      throw new TypeError('react-parade component props.pace must be "number"')
+    }
+  }
+}
+
+Parade.defaultProps = {
+  pace: 1
 }

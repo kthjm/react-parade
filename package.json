@@ -1,11 +1,11 @@
 {
   "name": "react-parade",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "author": "kthjm <toxictoxer@gmail.com>",
   "repository": "kthjm/react-parade",
   "license": "MIT",
-  "description": "",
-  "keywords": [],
+  "description": "Marching parade by svg elements.",
+  "keywords": ["react", "svg", "animation"],
   "main": "dist/cjs.js",
   "jsnext:main": "dist/es.js",
   "module": "dist/es.js",
@@ -23,12 +23,12 @@
   "scripts": {
     "type:stub": "flow-typed create-stub",
     "type:add": "flow-typed install",
-    "//pretest": "flow",
+    "pretest": "flow",
     "test": "cross-env NODE_ENV=TEST nyc mocha",
-    "//prebuild": "yarn test",
+    "prebuild": "yarn test",
     "build": "cross-env NODE_ENV=BUILD node rollup.config.all.js",
     "postbuild": "run-s format",
-    "format": "prettier --write **/*.js package.json",
+    "format": "prettier --write dist/*.js package.json",
     "coverage": "nyc report --reporter=lcov && codecov"
   },
   "devDependencies": {

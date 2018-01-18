@@ -1,6 +1,20 @@
 // @flow
+import type { TotalLength, Position, Fn$GetPointAtLength } from './types.js'
 
-const baseValProperties = {
+type NodeName = string
+type PropertyXY = string
+type BaseVal = { value: number }
+type Marcher$Element = {
+  nodeName: NodeName,
+  [propertyXY: PropertyXY]: { baseVal: BaseVal }
+}
+
+const baseValProperties: {
+  [key: NodeName]: {
+    propertyX: PropertyXY,
+    propertyY: PropertyXY
+  }
+} = {
   circle: {
     propertyX: 'cx',
     propertyY: 'cy'
@@ -19,27 +33,40 @@ const baseValProperties = {
   }
 }
 
-export const nodeNames = Object.keys(baseValProperties)
+export const nodeNames: Array<NodeName> = Object.keys(baseValProperties)
+
+type Props = {
+  element: Marcher$Element,
+  totalLength: TotalLength,
+  getPointAtLength: Fn$GetPointAtLength,
+  position: Position
+}
 
 export class Marcher {
-  constructor({ element, totalLength, position, getPointAtLength }) {
+  baseValX: BaseVal
+  baseValY: BaseVal
+  totalLength: TotalLength
+  getPointAtLength: Fn$GetPointAtLength
+  position: Position
+
+  constructor({ element, totalLength, getPointAtLength, position }: Props) {
     const { propertyX, propertyY } = baseValProperties[element.nodeName]
     this.baseValX = element[propertyX].baseVal
     this.baseValY = element[propertyY].baseVal
 
     this.totalLength = totalLength
-    this.position = position
     this.getPointAtLength = getPointAtLength
-
+    this.position = position
+    
     this.reflectPosition()
   }
 
-  march(pace) {
+  marching(pace: number): void {
     this.advancePosition(pace)
     this.reflectPosition()
   }
 
-  advancePosition(pace) {
+  advancePosition(pace: number) {
     const nextPosition = this.position + pace
     this.position =
       nextPosition < this.totalLength
